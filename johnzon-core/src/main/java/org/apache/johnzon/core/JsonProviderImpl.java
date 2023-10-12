@@ -56,14 +56,15 @@ public class JsonProviderImpl extends JsonProvider implements Serializable {
     private final Supplier<BufferStrategy.BufferProvider<char[]>> bufferProvider = new Cached<>(() ->
         BufferStrategyFactory.valueOf(System.getProperty(AbstractJsonFactory.BUFFER_STRATEGY, "QUEUE"))
             .newCharProvider(Integer.getInteger("org.apache.johnzon.default-char-provider.length", 1024)));
+    private int maxBigDecimalScale = Integer.getInteger("johnzon.max-big-decimal-scale", 1_000);
+    private boolean forceCloseStreamOnError = Boolean.parseBoolean(System.getProperty("org.apache.johnzon.force-close-stream-on-error", "true"));
 
     private final JsonReaderFactory readerFactory = new JsonReaderFactoryImpl(null, this);
     private final JsonParserFactory parserFactory = new JsonParserFactoryImpl(null, this);
-    private final JsonGeneratorFactory generatorFactory = new JsonGeneratorFactoryImpl(null);
-    private final JsonWriterFactory writerFactory = new JsonWriterFactoryImpl(null);
+    private final JsonGeneratorFactory generatorFactory = new JsonGeneratorFactoryImpl(null, this);
+    private final JsonWriterFactory writerFactory = new JsonWriterFactoryImpl(null, this);
     private final Supplier<JsonBuilderFactory> builderFactory = new Cached<>(() ->
             new JsonBuilderFactoryImpl(null, bufferProvider.get(), RejectDuplicateKeysMode.DEFAULT, this));
-    private int maxBigDecimalScale = Integer.getInteger("johnzon.max-big-decimal-scale", 1_000);
     @Override
     public JsonParser createParser(final InputStream in) {
         return parserFactory.createParser(in);
@@ -106,7 +107,7 @@ public class JsonProviderImpl extends JsonProvider implements Serializable {
 
     @Override
     public JsonGeneratorFactory createGeneratorFactory(final Map<String, ?> config) {
-        return (config == null || config.isEmpty()) ? generatorFactory : new JsonGeneratorFactoryImpl(config);
+        return (config == null || config.isEmpty()) ? generatorFactory : new JsonGeneratorFactoryImpl(config, this);
     }
 
     @Override
@@ -121,7 +122,7 @@ public class JsonProviderImpl extends JsonProvider implements Serializable {
 
     @Override
     public JsonWriterFactory createWriterFactory(final Map<String, ?> config) {
-        return (config == null || config.isEmpty()) ? writerFactory : new JsonWriterFactoryImpl(config);
+        return (config == null || config.isEmpty()) ? writerFactory : new JsonWriterFactoryImpl(config, this);
     }
 
     @Override
@@ -237,6 +238,14 @@ public class JsonProviderImpl extends JsonProvider implements Serializable {
 
     public void setMaxBigDecimalScale(final int maxBigDecimalScale) {
         this.maxBigDecimalScale = maxBigDecimalScale;
+    }
+
+    public boolean isForceCloseStreamOnError() {
+        return forceCloseStreamOnError;
+    }
+
+    public void setForceCloseStreamOnError(final boolean forceCloseStreamOnError) {
+        this.forceCloseStreamOnError = forceCloseStreamOnError;
     }
 
     /**

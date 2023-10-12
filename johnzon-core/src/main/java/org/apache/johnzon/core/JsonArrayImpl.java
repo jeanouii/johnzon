@@ -167,7 +167,7 @@ class JsonArrayImpl extends AbstractList<JsonValue> implements JsonArray, Serial
             return "[]";
         }
         final StringWriter writer = new StringWriter(2048);
-        try (final JsonGenerator generator = new JsonGeneratorImpl(writer, provider, false)) {
+        try (final JsonGenerator generator = new JsonGeneratorImpl(writer, provider, false, true)) {
             generator.writeStartArray();
             unmodifieableBackingList.forEach(generator::write);
             generator.writeEnd();

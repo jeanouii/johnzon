@@ -130,6 +130,9 @@
               <dependenciesToScan>jakarta.json:jakarta.json-tck-tests</dependenciesToScan>
 
               <systemProperties>
+
+                <org.apache.johnzon.force-close-stream-on-error>false</org.apache.johnzon.force-close-stream-on-error>
+
                 <jimage.dir>${project.build.directory}/jimage</jimage.dir>
                 <signature.sigTestClasspath>${project.build.directory}/signaturedirectory/jakarta.json-api.jar:${project.build.directory}/jimage/java.base:${project.build.directory}/jimage/java.rmi:${project.build.directory}/jimage/java.sql:${project.build.directory}/jimage/java.naming</signature.sigTestClasspath>
               </systemProperties>

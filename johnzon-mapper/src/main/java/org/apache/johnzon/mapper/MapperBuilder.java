@@ -18,18 +18,17 @@
  */
 package org.apache.johnzon.mapper;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
-import static java.util.Locale.ROOT;
-
-// import org.apache.johnzon.core.JsonParserFactoryImpl; // don't depend on core in mapper
-import org.apache.johnzon.mapper.util.JsonProviderUtil;
+import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonReaderFactory;
+import jakarta.json.spi.JsonProvider;
+import jakarta.json.stream.JsonGenerator;
+import jakarta.json.stream.JsonGeneratorFactory;
 import org.apache.johnzon.mapper.access.AccessMode;
 import org.apache.johnzon.mapper.access.BaseAccessMode;
 import org.apache.johnzon.mapper.access.FieldAccessMode;
 import org.apache.johnzon.mapper.access.FieldAndMethodAccessMode;
-import org.apache.johnzon.mapper.access.MethodAccessMode;
 import org.apache.johnzon.mapper.access.KnownNotOpenedJavaTypesAccessMode;
+import org.apache.johnzon.mapper.access.MethodAccessMode;
 import org.apache.johnzon.mapper.converter.BooleanConverter;
 import org.apache.johnzon.mapper.converter.ByteConverter;
 import org.apache.johnzon.mapper.converter.CachedDelegateConverter;
@@ -43,12 +42,8 @@ import org.apache.johnzon.mapper.converter.ShortConverter;
 import org.apache.johnzon.mapper.internal.AdapterKey;
 import org.apache.johnzon.mapper.internal.ConverterAdapter;
 import org.apache.johnzon.mapper.map.LazyConverterMap;
+import org.apache.johnzon.mapper.util.JsonProviderUtil;
 
-import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonReaderFactory;
-import jakarta.json.spi.JsonProvider;
-import jakarta.json.stream.JsonGenerator;
-import jakarta.json.stream.JsonGeneratorFactory;
 import java.io.Closeable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -62,6 +57,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
+import static java.util.Locale.ROOT;
 
 // this class is responsible to hold any needed config
 // to build the runtime
@@ -80,6 +79,7 @@ public class MapperBuilder {
     private boolean useGetterForCollections;
     private String accessModeName;
     private boolean pretty;
+    private boolean forceCloseStreamOnError = true;
     private final Collection<Closeable> closeables = new ArrayList<Closeable>();
     private int version = -1;
     private int snippetMaxLength = 50;
@@ -139,6 +139,9 @@ public class MapperBuilder {
             if (generatorFactory == null) {
                 if (pretty) {
                     config.put(JsonGenerator.PRETTY_PRINTING, true);
+                }
+                if (!forceCloseStreamOnError) { // default behavior is to close the stream all the time
+                    config.put("org.apache.johnzon.force-close-stream-on-error", false);
                 }
                 generatorFactory = provider.createGeneratorFactory(config);
             }
@@ -243,7 +246,7 @@ public class MapperBuilder {
                         typeLoader, discriminatorMapper, discriminator,
                         deserializationPredicate, serializationPredicate,
                         enumConverterFactory,
-                        JohnzonCores.snippetFactory(snippetMaxLength, generatorFactory), mappingsFactory),
+                        JohnzonCores.snippetFactory(snippetMaxLength, generatorFactory), mappingsFactory, forceCloseStreamOnError),
                 closeables);
     }
 
@@ -317,6 +320,11 @@ public class MapperBuilder {
 
     public MapperBuilder setPretty(final boolean pretty) {
         this.pretty = pretty;
+        return this;
+    }
+
+    public MapperBuilder setForceCloseStreamOnError(final boolean forceCloseStreamOnError) {
+        this.forceCloseStreamOnError = forceCloseStreamOnError;
         return this;
     }
 

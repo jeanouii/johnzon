@@ -40,6 +40,7 @@ class JsonGeneratorImpl implements JsonGenerator, JsonChars, Serializable {
     private final char[] buffer;
     private int bufferPos = 0;
     private final boolean prettyPrint;
+    private final boolean forceCloseStreamOnError;
     private static final String INDENT = "  ";
     private int depth = 0;
     private boolean closed;
@@ -65,11 +66,12 @@ class JsonGeneratorImpl implements JsonGenerator, JsonChars, Serializable {
     }
 
     JsonGeneratorImpl(final Writer writer, final BufferStrategy.BufferProvider<char[]> bufferProvider,
-                      final boolean prettyPrint) {
+                      final boolean prettyPrint, final boolean forceCloseStreamOnError) {
         this.writer = writer;
         this.buffer = bufferProvider.newBuffer();
         this.bufferProvider = bufferProvider;
         this.prettyPrint = prettyPrint;
+        this.forceCloseStreamOnError = forceCloseStreamOnError;
         state.push(GeneratorState.INITIAL);
     }
 
@@ -449,6 +451,9 @@ class JsonGeneratorImpl implements JsonGenerator, JsonChars, Serializable {
         try {
             if (ex == null) {
                 flushBuffer();
+                writer.close();
+
+            } else if (forceCloseStreamOnError) {
                 writer.close();
             }
         } catch (final IOException e) {

@@ -16,6 +16,7 @@
  */
 package org.apache.johnzon.core;
 
+import jakarta.json.spi.JsonProvider;
 import org.junit.Test;
 
 import jakarta.json.Json;
@@ -309,7 +310,7 @@ public class SnippetTest {
         private final List<String> calls = new ArrayList<>();
 
         public TrackingJsonGeneratorFactory() {
-            super(Collections.EMPTY_MAP);
+            super(Collections.EMPTY_MAP, (JsonProviderImpl) JsonProvider.provider());
         }
 
         @Override

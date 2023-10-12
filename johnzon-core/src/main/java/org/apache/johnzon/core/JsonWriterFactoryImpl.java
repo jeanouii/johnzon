@@ -18,8 +18,9 @@
  */
 package org.apache.johnzon.core;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
+import jakarta.json.JsonWriter;
+import jakarta.json.JsonWriterFactory;
+import jakarta.json.stream.JsonGeneratorFactory;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -29,9 +30,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import jakarta.json.JsonWriter;
-import jakarta.json.JsonWriterFactory;
-import jakarta.json.stream.JsonGeneratorFactory;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
 
 class JsonWriterFactoryImpl extends AbstractJsonFactory implements JsonWriterFactory{
     static final Collection<String> SUPPORTED_CONFIG_KEYS = asList(
@@ -39,9 +39,9 @@ class JsonWriterFactoryImpl extends AbstractJsonFactory implements JsonWriterFac
     );
     private final JsonGeneratorFactory factory;
 
-    JsonWriterFactoryImpl(final Map<String, ?> config) {
+    JsonWriterFactoryImpl(final Map<String, ?> config, final JsonProviderImpl provider) {
         super(config, SUPPORTED_CONFIG_KEYS, JsonGeneratorFactoryImpl.SUPPORTED_CONFIG_KEYS);
-        this.factory = new JsonGeneratorFactoryImpl(internalConfig);
+        this.factory = new JsonGeneratorFactoryImpl(internalConfig, provider);
     }
 
     @Override

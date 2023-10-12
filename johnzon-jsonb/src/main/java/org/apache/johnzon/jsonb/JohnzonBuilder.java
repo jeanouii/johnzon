@@ -133,6 +133,10 @@ public class JohnzonBuilder implements JsonbBuilder {
             builder.setPretty(true);
         }
 
+        builder.setForceCloseStreamOnError(
+            toBool(System.getProperty("org.apache.johnzon.force-close-stream-on-error",
+                                      config.getProperty("org.apache.johnzon.force-close-stream-on-error").map(String::valueOf).orElse("true"))));
+
         config.getProperty(PolymorphicConfig.class.getName())
                 .map(PolymorphicConfig.class::cast)
                 .ifPresent(pc -> {
@@ -160,17 +164,13 @@ public class JohnzonBuilder implements JsonbBuilder {
 
         config.getProperty("johnzon.attributeOrder").ifPresent(comp -> builder.setAttributeOrder(Comparator.class.cast(comp)));
         config.getProperty("johnzon.primitiveConverters")
-                .map(this::toBool)
-                .ifPresent(builder::setPrimitiveConverters);
+                .map(this::toBool).ifPresent(builder::setPrimitiveConverters);
         config.getProperty("johnzon.useBigDecimalForFloats")
-                .map(this::toBool)
-                .ifPresent(builder::setUseBigDecimalForFloats);
+                .map(this::toBool).ifPresent(builder::setUseBigDecimalForFloats);
         config.getProperty("johnzon.deduplicateObjects")
-                .map(this::toBool)
-                .ifPresent(builder::setDeduplicateObjects);
+                .map(this::toBool).ifPresent(builder::setDeduplicateObjects);
         config.getProperty("johnzon.interfaceImplementationMapping")
-                .map(Map.class::cast)
-                .ifPresent(builder::setInterfaceImplementationMapping);
+                .map(Map.class::cast).ifPresent(builder::setInterfaceImplementationMapping);
         builder.setUseJsRange(toBool( // https://github.com/eclipse-ee4j/jsonb-api/issues/180
                 System.getProperty("johnzon.use-js-range", config.getProperty("johnzon.use-js-range")
                 .map(String::valueOf).orElse("false"))));
@@ -456,6 +456,7 @@ public class JohnzonBuilder implements JsonbBuilder {
         config.getProperty("org.apache.johnzon.default-char-buffer-generator").ifPresent(b -> map.put("org.apache.johnzon.default-char-buffer-generator", b));
         config.getProperty("org.apache.johnzon.boundedoutputstreamwriter").ifPresent(b -> map.put("org.apache.johnzon.boundedoutputstreamwriter", b));
         config.getProperty("org.apache.johnzon.buffer-strategy").ifPresent(b -> map.put("org.apache.johnzon.buffer-strategy", b));
+        config.getProperty("org.apache.johnzon.force-close-stream-on-error").ifPresent(b -> map.put("org.apache.johnzon.force-close-stream-on-error", b));
         config.getProperty(JsonbConfig.FORMATTING).ifPresent(b -> map.put(JsonGenerator.PRETTY_PRINTING, b));
         return map;
     }

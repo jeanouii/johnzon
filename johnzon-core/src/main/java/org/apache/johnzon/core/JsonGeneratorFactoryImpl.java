@@ -18,10 +18,10 @@
  */
 package org.apache.johnzon.core;
 
-import org.apache.johnzon.core.io.BoundedOutputStreamWriter;
-
 import jakarta.json.stream.JsonGenerator;
 import jakarta.json.stream.JsonGeneratorFactory;
+import org.apache.johnzon.core.io.BoundedOutputStreamWriter;
+
 import java.io.Flushable;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -36,25 +36,30 @@ import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
 public class JsonGeneratorFactoryImpl extends AbstractJsonFactory implements JsonGeneratorFactory {
+    public static final String FORCE_CLOSE_STREAM_ON_ERROR = "org.apache.johnzon.force-close-stream-on-error";
     public static final String GENERATOR_BUFFER_LENGTH = "org.apache.johnzon.default-char-buffer-generator";
     public static final String BOUNDED_OUTPUT_STREAM_WRITER_LEN = "org.apache.johnzon.boundedoutputstreamwriter";
     public static final int DEFAULT_GENERATOR_BUFFER_LENGTH = Integer.getInteger(GENERATOR_BUFFER_LENGTH, 64 * 1024); //64k
 
     static final Collection<String> SUPPORTED_CONFIG_KEYS = asList(
-            JsonGenerator.PRETTY_PRINTING, GENERATOR_BUFFER_LENGTH, BUFFER_STRATEGY, ENCODING, BOUNDED_OUTPUT_STREAM_WRITER_LEN
+            JsonGenerator.PRETTY_PRINTING, GENERATOR_BUFFER_LENGTH, BUFFER_STRATEGY, ENCODING,
+            BOUNDED_OUTPUT_STREAM_WRITER_LEN, FORCE_CLOSE_STREAM_ON_ERROR
     );
 
     private final Charset defaultEncoding;
 
     //key caching currently disabled
     private final boolean pretty;
+    private final boolean forceCloseStreamOnError;
     private final int boundedOutputStreamWriter;
     private final Buffer buffer;
     private volatile Buffer customBuffer;
 
-    public JsonGeneratorFactoryImpl(final Map<String, ?> config) {
+    public JsonGeneratorFactoryImpl(final Map<String, ?> config, final JsonProviderImpl provider) {
         super(config, SUPPORTED_CONFIG_KEYS, null);
         this.pretty = getBool(JsonGenerator.PRETTY_PRINTING, false);
+        this.forceCloseStreamOnError = getBool(FORCE_CLOSE_STREAM_ON_ERROR, provider.isForceCloseStreamOnError());
+
         this.boundedOutputStreamWriter = getInt(BOUNDED_OUTPUT_STREAM_WRITER_LEN, -1);
         this.defaultEncoding = ofNullable(config)
                 .map(c -> c.get(ENCODING))
@@ -70,7 +75,7 @@ public class JsonGeneratorFactoryImpl extends AbstractJsonFactory implements Jso
 
     @Override
     public JsonGenerator createGenerator(final Writer writer) {
-        return new JsonGeneratorImpl(writer, getBufferProvider(writer), pretty);
+        return new JsonGeneratorImpl(writer, getBufferProvider(writer), pretty, forceCloseStreamOnError);
     }
 
     @Override
@@ -79,7 +84,7 @@ public class JsonGeneratorFactoryImpl extends AbstractJsonFactory implements Jso
                 boundedOutputStreamWriter <= 0 ?
                         new OutputStreamWriter(out, defaultEncoding) :
                         new BoundedOutputStreamWriter(out, defaultEncoding, boundedOutputStreamWriter),
-                getBufferProvider(out), pretty);
+                getBufferProvider(out), pretty, forceCloseStreamOnError);
     }
 
     @Override
@@ -89,7 +94,7 @@ public class JsonGeneratorFactoryImpl extends AbstractJsonFactory implements Jso
                 boundedOutputStreamWriter <= 0 ?
                         new OutputStreamWriter(out, cs) :
                         new BoundedOutputStreamWriter(out, cs, boundedOutputStreamWriter),
-                getBufferProvider(out), pretty);
+                getBufferProvider(out), pretty, forceCloseStreamOnError);
     }
 
     @Override

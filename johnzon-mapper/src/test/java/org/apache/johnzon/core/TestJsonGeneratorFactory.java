@@ -18,6 +18,7 @@
  */
 package org.apache.johnzon.core;
 
+import jakarta.json.spi.JsonProvider;
 import jakarta.json.stream.JsonGenerator;
 import java.io.Writer;
 import java.util.Collections;
@@ -35,13 +36,13 @@ import java.util.Collections;
 public class TestJsonGeneratorFactory extends JsonGeneratorFactoryImpl {
 
     public TestJsonGeneratorFactory() {
-        super(Collections.emptyMap());
+        super(Collections.emptyMap(), (JsonProviderImpl) JsonProvider.provider());
     }
 
 
     @Override
     public JsonGenerator createGenerator(Writer writer) {
-        return new JsonGeneratorImpl(writer, TestBufferProvider.INSTANCE, false);
+        return new JsonGeneratorImpl(writer, TestBufferProvider.INSTANCE, false, true);
     }
 
 }

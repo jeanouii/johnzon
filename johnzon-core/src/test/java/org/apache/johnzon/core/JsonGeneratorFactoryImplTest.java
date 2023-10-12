@@ -18,9 +18,10 @@
  */
 package org.apache.johnzon.core;
 
+import jakarta.json.spi.JsonProvider;
+import jakarta.json.stream.JsonGenerator;
 import org.junit.Test;
 
-import jakarta.json.stream.JsonGenerator;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -40,8 +41,10 @@ public class JsonGeneratorFactoryImplTest {
         final ByteArrayOutputStream bounded = new ByteArrayOutputStream();
         final ByteArrayOutputStream defaultOut = new ByteArrayOutputStream();
 
-        try (final JsonGenerator boundedGenerator = new JsonGeneratorFactoryImpl(boundedConfig).createGenerator(bounded);
-             final JsonGenerator defaultGenerator = new JsonGeneratorFactoryImpl(emptyMap()).createGenerator(defaultOut)) {
+        try (final JsonGenerator boundedGenerator = new JsonGeneratorFactoryImpl(boundedConfig,
+                                                                                 (JsonProviderImpl) JsonProvider.provider()).createGenerator(bounded);
+             final JsonGenerator defaultGenerator = new JsonGeneratorFactoryImpl(emptyMap(),
+                                                                                 (JsonProviderImpl) JsonProvider.provider()).createGenerator(defaultOut)) {
             assertEquals(0, defaultOut.size());
             assertEquals(0, bounded.size());
 

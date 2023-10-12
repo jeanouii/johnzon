@@ -81,7 +81,8 @@ public /* DON'T MAKE IT HIDDEN */ class MapperConfig implements Cloneable {
     private final Boolean deduplicateObjects;
     private final Map<Class<?>, Class<?>> interfaceImplementationMapping;
     private final boolean useBigDecimalForObjectNumbers;
-    private int maxBigDecimalScale;
+    private final int maxBigDecimalScale;
+    private final boolean forceCloseStreamOnError;
     private final Function<String, Class<?>> typeLoader;
     private final Function<Class<?>, String> discriminatorMapper;
     private final Predicate<Class<?>> serializationPredicate;
@@ -132,7 +133,7 @@ public /* DON'T MAKE IT HIDDEN */ class MapperConfig implements Cloneable {
                 attributeOrder, failOnUnknown, serializeValueFilter, useBigDecimalForFloats, deduplicateObjects, interfaceImplementationMapping,
                 useJsRange, useBigDecimalForObjectNumbers, maxBigDecimalScale, supportEnumMapDeserialization, typeLoader,
                 discriminatorMapper, discriminator, deserializationPredicate, serializationPredicate, enumConverterFactory,
-                JohnzonCores.snippetFactory(50, Json.createGeneratorFactory(emptyMap())), null);
+                JohnzonCores.snippetFactory(50, Json.createGeneratorFactory(emptyMap())), null, true);
     }
 
     //disable checkstyle for 10+ parameters
@@ -162,7 +163,8 @@ public /* DON'T MAKE IT HIDDEN */ class MapperConfig implements Cloneable {
                         final Predicate<Class<?>> serializationPredicate,
                         final Function<Class<?>, CustomEnumConverter<?>> enumConverterFactory,
                         final SnippetFactory snippet,
-                        final Function<MapperConfig, Mappings> mappingsFactory) {
+                        final Function<MapperConfig, Mappings> mappingsFactory,
+                        final boolean forceCloseStreamOnError) {
         //CHECKSTYLE:ON
         this.objectConverterWriters = objectConverterWriters;
         this.objectConverterReaders = objectConverterReaders;
@@ -196,6 +198,7 @@ public /* DON'T MAKE IT HIDDEN */ class MapperConfig implements Cloneable {
         this.failOnUnknown = failOnUnknown;
         this.serializeValueFilter = serializeValueFilter == null ? (name, value) -> false : serializeValueFilter;
         this.interfaceImplementationMapping = interfaceImplementationMapping;
+        this.forceCloseStreamOnError = forceCloseStreamOnError;
 
         this.objectConverterWriterCache = new HashMap<>(objectConverterWriters.size());
         this.objectConverterReaderCache = new HashMap<>(objectConverterReaders.size());
@@ -248,6 +251,10 @@ public /* DON'T MAKE IT HIDDEN */ class MapperConfig implements Cloneable {
 
     public int getMaxBigDecimalScale() {
         return maxBigDecimalScale;
+    }
+
+    public boolean isForceCloseStreamOnError() {
+        return forceCloseStreamOnError;
     }
 
     public boolean isUseJsRange() {
